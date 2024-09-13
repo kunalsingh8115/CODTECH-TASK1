@@ -1,0 +1,98 @@
+/*Here's a Verilog module for the FSM*/
+
+module traffic_light_fsm (
+    input wire clk,
+    input wire reset,
+    output reg [1:0] light
+);
+
+    // State encoding
+    typedef enum reg [1:0] {
+        RED    = 2'b00,
+        GREEN  = 2'b01,
+        YELLOW = 2'b10
+    } state_t;
+
+    // State registers
+    state_t current_state, next_state;
+
+    // State transition
+    always @(posedge clk or posedge reset) begin
+        if (reset)
+            current_state <= RED; // Reset state
+        else
+            current_state <= next_state;
+    end
+
+    // Next state logic
+    always @(*) begin
+        case (current_state)
+            RED:    next_state = GREEN;
+            GREEN:  next_state = YELLOW;
+            YELLOW: next_state = RED;
+            default: next_state = RED;
+        endcase
+    end
+
+    // Output logic
+    always @(current_state) begin
+        case (current_state)
+            RED:    light = 2'b00;
+            GREEN:  light = 2'b01;
+            YELLOW: light = 2'b10;
+            default: light = 2'b00;
+        endcase
+    end
+
+endmodule
+
+/*Here's a Verilog module for the FSM*/
+
+module tb_traffic_light_fsm;
+
+    // Testbench signals
+    reg clk;
+    reg reset;
+    wire [1:0] light;
+
+    // Instantiate the FSM
+    traffic_light_fsm uut (
+        .clk(clk),
+        .reset(reset),
+        .light(light)
+    );
+
+    // Clock generation
+    always begin
+        #5 clk = ~clk; // 10-time unit clock period
+    end
+
+    // Test sequence
+    initial begin
+        // Initialize signals
+        clk = 0;
+        reset = 1;
+
+        // Apply reset
+        #10 reset = 0;
+
+        // Wait and observe state transitions
+        #20;
+        $display("Time = %0t, Light = %b", $time, light);
+
+        #20;
+        $display("Time = %0t, Light = %b", $time, light);
+
+        #20;
+        $display("Time = %0t, Light = %b", $time, light);
+
+        #20;
+        $display("Time = %0t, Light = %b", $time, light);
+
+        // End simulation
+        #10;
+        $finish;
+    end
+
+endmodule
+
